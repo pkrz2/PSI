@@ -1,0 +1,14 @@
+kostka = function(){
+  return(sample(1:6, 1))
+}
+przyznaj_nagrode= function(){
+  rzut = kostka()
+  if(rzut == 6){
+    print("Super bonus!")
+  }else if(rzut == 4 || rzut == 5){
+    print("Nagroda standardowa")
+  }else {
+    print("Brak nagrody")
+  }
+}
+przyznaj_nagrode()
