@@ -1,0 +1,4 @@
+kostka = function(){
+  return(sample(1:6, 1))
+}
+print(kostka())
