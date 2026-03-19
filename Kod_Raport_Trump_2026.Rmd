@@ -1,0 +1,153 @@
+---
+title: "Raport_Trump_2026"
+author: "Piotr Krzeminski"
+date: "19.03.2026"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(SentimentAnalysis)
+library(ggplot2)
+library(ggthemes)
+library(tidyverse)
+
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Wczytanie danych
+
+```{r}
+# Wczytanie pliku
+text <- readLines(file.choose(), encoding = "UTF-8")
+
+# Analiza sentymentu
+sentiment <- analyzeSentiment(text)
+```
+
+# Słownik GI
+
+```{r}
+data(DictionaryGI)
+
+sentimentGI <- convertToDirection(sentiment$SentimentGI)
+
+df_GI <- data.frame(index = seq_along(sentimentGI),
+                    value = sentimentGI,
+                    Dictionary = "GI")
+
+df_GI <- na.omit(df_GI)
+
+ggplot(df_GI, aes(x = value)) +
+  geom_bar(fill = "green", alpha = 0.7) +
+  labs(title = "Sentyment (GI)", x = "Sentyment", y = "Liczba") +
+  theme_bw()
+```
+
+# Słownik HE
+
+```{r}
+data(DictionaryHE)
+
+sentimentHE <- convertToDirection(sentiment$SentimentHE)
+
+df_HE <- data.frame(index = seq_along(sentimentHE),
+                    value = sentimentHE,
+                    Dictionary = "HE")
+
+df_HE <- na.omit(df_HE)
+
+ggplot(df_HE, aes(x = value)) +
+  geom_bar(fill = "blue", alpha = 0.7) +
+  labs(title = "Sentyment (HE)", x = "Sentyment", y = "Liczba") +
+  theme_bw()
+```
+
+# Słownik LM
+
+```{r}
+data(DictionaryLM)
+
+sentimentLM <- convertToDirection(sentiment$SentimentLM)
+
+df_LM <- data.frame(index = seq_along(sentimentLM),
+                    value = sentimentLM,
+                    Dictionary = "LM")
+
+df_LM <- na.omit(df_LM)
+
+ggplot(df_LM, aes(x = value)) +
+  geom_bar(fill = "orange", alpha = 0.7) +
+  labs(title = "Sentyment (LM)", x = "Sentyment", y = "Liczba") +
+  theme_bw()
+```
+
+# Słownik QDAP
+
+```{r}
+qdap <- loadDictionaryQDAP()
+
+sentimentQDAP <- convertToDirection(sentiment$SentimentQDAP)
+
+df_QDAP <- data.frame(index = seq_along(sentimentQDAP),
+                      value = sentimentQDAP,
+                      Dictionary = "QDAP")
+
+df_QDAP <- na.omit(df_QDAP)
+
+ggplot(df_QDAP, aes(x = value)) +
+  geom_bar(fill = "red", alpha = 0.7) +
+  labs(title = "Sentyment (QDAP)", x = "Sentyment", y = "Liczba") +
+  theme_bw()
+```
+
+# Porównanie słowników
+
+```{r}
+df_all <- bind_rows(df_GI, df_HE, df_LM, df_QDAP)
+
+ggplot(df_all, aes(x = value, fill = Dictionary)) +
+  geom_bar(alpha = 0.7) +
+  labs(title = "Porównanie sentymentu",
+       x = "Sentyment",
+       y = "Liczba") +
+  theme_bw() +
+  facet_wrap(~Dictionary)
+```
+
+# Sentyment w czasie
+
+```{r}
+df_time <- data.frame(
+  sentence = 1:length(sentiment[,1]),
+  GI = sentiment$SentimentGI,
+  HE = sentiment$SentimentHE,
+  LM = sentiment$SentimentLM,
+  QDAP = sentiment$SentimentQDAP
+)
+
+df_time <- df_time[complete.cases(df_time), ]
+
+ggplot(df_time, aes(x = sentence)) +
+  geom_line(aes(y = GI), color = "green") +
+  geom_line(aes(y = HE), color = "blue") +
+  geom_line(aes(y = LM), color = "orange") +
+  geom_line(aes(y = QDAP), color = "red") +
+  theme_gdocs() +
+  labs(title = "Zmiana sentymentu w czasie",
+       x = "Zdania",
+       y = "Sentyment")
+```
+
+# Wygładzony trend
+
+```{r}
+ggplot(df_time, aes(x = sentence)) +
+  geom_smooth(aes(y = GI), color = "green") +
+  geom_smooth(aes(y = HE), color = "blue") +
+  geom_smooth(aes(y = LM), color = "orange") +
+  geom_smooth(aes(y = QDAP), color = "red") +
+  theme_gdocs() +
+  labs(title = "Trend sentymentu",
+       x = "Zdania",
+       y = "Sentyment")
+```
